@@ -6,6 +6,7 @@ const errorHandler = require('./middleware/errorHandler');
 const buildingRoutes = require('./routes/buildingRoutes');
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/auth');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.get('/', (req, res) => {
 app.use('/api/buildings', buildingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Custom Error Handling Middleware
 app.use(notFound);

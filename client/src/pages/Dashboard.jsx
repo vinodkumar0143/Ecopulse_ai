@@ -11,12 +11,12 @@ import {
   Maximize2,
   Calendar,
   PlusCircle,
-  Lightbulb,
   CheckCircle2,
   AlertTriangle,
   TrendingUp,
   RefreshCw,
   AlertCircle,
+  Brain,
 } from 'lucide-react';
 import {
   BarChart,
@@ -29,19 +29,27 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { getBuildings } from '../services/api';
+import { getBuildings, getAIAnalysis } from '../services/api';
+import AIScoreExplanation from '../components/AIScoreExplanation';
+import AIRecommendations from '../components/AIRecommendations';
+import CostSavingsCard from '../components/CostSavingsCard';
+import ImpactCard from '../components/ImpactCard';
 
 const Dashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const [assessment, setAssessment] = useState(location.state?.newAssessment || null);
+  const [aiData, setAiData] = useState(null);
   const [loading, setLoading] = useState(!location.state?.newAssessment);
+  const [aiLoading, setAiLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!location.state?.newAssessment) {
       fetchLatestAssessment();
+    } else {
+      fetchAIInsights(location.state.newAssessment);
     }
   }, []);
 
@@ -51,14 +59,40 @@ const Dashboard = () => {
       setError(null);
       const res = await getBuildings();
       if (res.data?.data && res.data.data.length > 0) {
-        setAssessment(res.data.data[0]);
+        const latest = res.data.data[0];
+        setAssessment(latest);
+        fetchAIInsights(latest);
       } else {
         setAssessment(null);
+        setAiLoading(false);
       }
     } catch (err) {
       setError('Something went wrong connecting to backend API. Please try again.');
-    } finally {
+      setAiLoading(false);
+    } fontFinally: {
       setLoading(false);
+    }
+  };
+
+  const fetchAIInsights = async (buildingObj) => {
+    try {
+      setAiLoading(true);
+      const res = await getAIAnalysis({
+        type: buildingObj.type,
+        area: buildingObj.area,
+        energyUsage: buildingObj.energyUsage,
+        waterUsage: buildingObj.waterUsage,
+        materials: buildingObj.materials,
+        sustainabilityScore: buildingObj.sustainabilityScore,
+      });
+
+      if (res.data?.data) {
+        setAiData(res.data.data);
+      }
+    } catch (e) {
+      console.log('AI Analysis fallback enabled');
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -76,10 +110,6 @@ const Dashboard = () => {
           <div className="h-32 glass-card rounded-2xl animate-pulse bg-emerald-950/20" />
           <div className="h-32 glass-card rounded-2xl animate-pulse bg-emerald-950/20" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-64 glass-card rounded-3xl animate-pulse bg-emerald-950/20" />
-          <div className="h-64 glass-card rounded-3xl animate-pulse bg-emerald-950/20" />
-        </div>
       </div>
     );
   }
@@ -93,7 +123,7 @@ const Dashboard = () => {
           <h3 className="text-xl font-bold text-red-200">{error}</h3>
           <button
             onClick={fetchLatestAssessment}
-            className="px-6 py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs inline-flex items-center gap-2 hover:scale-105 transition-all duration-300 cursor-pointer"
+            className="px-6 py-3 rounded-xl bg-[#3EDC81] text-slate-950 font-bold text-xs inline-flex items-center gap-2 hover:scale-105 transition-all duration-300 cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
             <span>Try Again</span>
@@ -111,11 +141,11 @@ const Dashboard = () => {
           <Building2 className="w-16 h-16 text-emerald-400/40 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-emerald-100">No Assessment Found</h2>
           <p className="text-sm text-emerald-300/70 mt-2 mb-6">
-            Generate your first building sustainability evaluation to view analytics and recommendations.
+            Generate your first building sustainability evaluation to view analytics and AI insights.
           </p>
           <button
             onClick={() => navigate('/assess')}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm inline-flex items-center gap-2 shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all duration-300 cursor-pointer"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#3EDC81] to-emerald-500 text-slate-950 font-bold text-sm inline-flex items-center gap-2 shadow-lg shadow-[#3EDC81]/20 hover:scale-105 transition-all duration-300 cursor-pointer"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Assess New Building</span>
@@ -138,8 +168,8 @@ const Dashboard = () => {
       return {
         label: 'Excellent',
         badgeBg: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
-        strokeColor: '#10b981',
-        glowColor: 'rgba(16, 185, 129, 0.4)',
+        strokeColor: '#3EDC81',
+        glowColor: 'rgba(62, 220, 129, 0.4)',
         icon: CheckCircle2,
       };
     }
@@ -166,13 +196,13 @@ const Dashboard = () => {
 
   // Chart Data
   const barChartData = [
-    { name: 'Energy', score: metrics.energyEfficiency, fill: '#10b981' },
+    { name: 'Energy', score: metrics.energyEfficiency, fill: '#3EDC81' },
     { name: 'Water', score: metrics.waterEfficiency, fill: '#06b6d4' },
     { name: 'Material', score: metrics.materialEfficiency, fill: '#8b5cf6' },
   ];
 
   const pieChartData = [
-    { name: 'Energy (40%)', value: 40, color: '#10b981' },
+    { name: 'Energy (40%)', value: 40, color: '#3EDC81' },
     { name: 'Water (30%)', value: 30, color: '#06b6d4' },
     { name: 'Material (30%)', value: 30, color: '#8b5cf6' },
   ];
@@ -201,14 +231,14 @@ const Dashboard = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-8 py-4"
+      className="space-y-8 py-4 max-w-7xl mx-auto"
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#3EDC81]/10 border border-[#3EDC81]/30 text-[#3EDC81] text-xs font-semibold uppercase tracking-wider mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Sustainability Dashboard</span>
+            <span>ECOPULSE AI Analytics Platform</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold gradient-heading">
             Environmental Impact Analytics
@@ -217,7 +247,7 @@ const Dashboard = () => {
 
         <button
           onClick={() => navigate('/assess')}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs sm:text-sm inline-flex items-center gap-2 shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all duration-300 cursor-pointer self-start sm:self-auto"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#3EDC81] to-emerald-500 text-slate-950 font-bold text-xs sm:text-sm inline-flex items-center gap-2 shadow-lg shadow-[#3EDC81]/20 hover:scale-105 transition-all duration-300 cursor-pointer self-start sm:self-auto"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Assess Another Building</span>
@@ -229,7 +259,7 @@ const Dashboard = () => {
         {/* Score Gauge Card */}
         <motion.div
           variants={itemVariants}
-          className="lg:col-span-2 glass-card p-6 sm:p-8 rounded-3xl border border-emerald-500/25 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-around gap-6"
+          className="lg:col-span-2 glass-card p-6 sm:p-8 rounded-3xl border border-[#3EDC81]/30 shadow-2xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-around gap-6"
         >
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full blur-3xl pointer-events-none"
@@ -281,7 +311,7 @@ const Dashboard = () => {
               Overall Sustainability Index
             </h2>
             <p className="text-xs text-emerald-200/70 leading-relaxed">
-              Calculated using weighted 40/30/30 logic across energy consumption, water resource efficiency, and material classification.
+              Weighted 40/30/30 evaluation across energy consumption, water efficiency, and material recyclability.
             </p>
           </div>
         </motion.div>
@@ -294,10 +324,10 @@ const Dashboard = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-emerald-100 flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-emerald-400" />
+                <Building2 className="w-4 h-4 text-[#3EDC81]" />
                 Building Profile
               </h3>
-              <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold uppercase tracking-wider border border-emerald-500/20">
+              <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#3EDC81]/10 text-[#3EDC81] font-semibold uppercase tracking-wider border border-[#3EDC81]/30">
                 {assessment.type}
               </span>
             </div>
@@ -305,32 +335,32 @@ const Dashboard = () => {
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between py-2 border-b border-emerald-900/40">
                 <span className="text-emerald-300/60 flex items-center gap-2">
-                  <Maximize2 className="w-3.5 h-3.5 text-emerald-400" /> Total Area
+                  <Maximize2 className="w-3.5 h-3.5 text-[#3EDC81]" /> Total Area
                 </span>
                 <span className="font-semibold text-emerald-100">{assessment.area} sq ft</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-emerald-900/40">
                 <span className="text-emerald-300/60 flex items-center gap-2">
-                  <Zap className="w-3.5 h-3.5 text-emerald-400" /> Energy Usage
+                  <Zap className="w-3.5 h-3.5 text-[#3EDC81]" /> Energy Usage
                 </span>
                 <span className="font-semibold text-emerald-100">{assessment.energyUsage} kWh</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-emerald-900/40">
                 <span className="text-emerald-300/60 flex items-center gap-2">
-                  <Droplets className="w-3.5 h-3.5 text-emerald-400" /> Water Usage
+                  <Droplets className="w-3.5 h-3.5 text-[#3EDC81]" /> Water Usage
                 </span>
                 <span className="font-semibold text-emerald-100">{assessment.waterUsage} Gal/L</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-emerald-900/40">
                 <span className="text-emerald-300/60 flex items-center gap-2">
-                  <Recycle className="w-3.5 h-3.5 text-emerald-400" /> Materials
+                  <Recycle className="w-3.5 h-3.5 text-[#3EDC81]" /> Materials
                 </span>
                 <span className="font-semibold text-emerald-100 capitalize">{assessment.materials}</span>
               </div>
             </div>
           </div>
 
-          <div className="pt-4 text-[11px] text-emerald-400/60 flex items-center gap-1.5">
+          <div className="pt-4 text-[11px] text-[#3EDC81]/70 flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5" />
             <span>
               Assessed on {new Date(assessment.createdAt || Date.now()).toLocaleDateString()}
@@ -344,7 +374,7 @@ const Dashboard = () => {
         {/* Energy Card */}
         <motion.div variants={itemVariants} className="glass-card glass-card-hover p-6 rounded-2xl">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-[#3EDC81]/10 border border-[#3EDC81]/30 flex items-center justify-center text-[#3EDC81]">
               <Zap className="w-5 h-5" />
             </div>
             <span className="text-xl font-bold text-emerald-100">{metrics.energyEfficiency}%</span>
@@ -356,7 +386,7 @@ const Dashboard = () => {
               initial={{ width: 0 }}
               animate={{ width: `${metrics.energyEfficiency}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
-              className="bg-emerald-400 h-full rounded-full"
+              className="bg-[#3EDC81] h-full rounded-full"
             />
           </div>
         </motion.div>
@@ -402,11 +432,41 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Grid Row 3: Recharts Visualizations */}
+      {/* Grid Row 3: AI Score Synthesis & Impact Cards */}
+      {aiLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="h-44 glass-card rounded-3xl animate-pulse bg-emerald-950/20" />
+          <div className="h-44 glass-card rounded-3xl animate-pulse bg-emerald-950/20" />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* AI Score Explanation */}
+          <AIScoreExplanation
+            scoreExplanation={aiData?.scoreExplanation}
+            score={score}
+          />
+
+          {/* AI Recommendations */}
+          <AIRecommendations
+            recommendations={aiData?.recommendations || assessment.recommendations}
+          />
+
+          {/* Financial Cost Savings & Environmental CO2 Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CostSavingsCard costSavings={aiData?.costSavings} />
+            <ImpactCard
+              environmentalImpact={aiData?.environmentalImpact}
+              improvementTips={aiData?.improvementTips}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Grid Row 4: Recharts Visualizations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div variants={itemVariants} className="glass-card p-6 rounded-3xl border border-emerald-500/20 shadow-xl">
           <h3 className="text-base font-bold text-emerald-100 mb-4 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <TrendingUp className="w-4 h-4 text-[#3EDC81]" />
             Category Efficiency Breakdown
           </h3>
           <div className="h-64 w-full">
@@ -417,7 +477,7 @@ const Dashboard = () => {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#0d1811',
-                    borderColor: 'rgba(52, 211, 153, 0.3)',
+                    borderColor: 'rgba(62, 220, 129, 0.3)',
                     borderRadius: '12px',
                     color: '#ecfdf5',
                   }}
@@ -434,7 +494,7 @@ const Dashboard = () => {
 
         <motion.div variants={itemVariants} className="glass-card p-6 rounded-3xl border border-emerald-500/20 shadow-xl">
           <h3 className="text-base font-bold text-emerald-100 mb-4 flex items-center gap-2">
-            <Award className="w-4 h-4 text-emerald-400" />
+            <Award className="w-4 h-4 text-[#3EDC81]" />
             Scoring Engine Weight Distribution
           </h3>
           <div className="h-64 w-full flex items-center justify-center">
@@ -456,7 +516,7 @@ const Dashboard = () => {
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#0d1811',
-                    borderColor: 'rgba(52, 211, 153, 0.3)',
+                    borderColor: 'rgba(62, 220, 129, 0.3)',
                     borderRadius: '12px',
                     color: '#ecfdf5',
                   }}
@@ -466,49 +526,6 @@ const Dashboard = () => {
           </div>
         </motion.div>
       </div>
-
-      {/* Grid Row 4: AI Recommendations Panel */}
-      <motion.div variants={itemVariants} className="glass-card p-6 sm:p-8 rounded-3xl border border-emerald-500/25 shadow-2xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-extrabold text-emerald-50">
-                  AI Smart Suggestions
-                </h3>
-                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold uppercase tracking-wider">
-                  ✨ Powered by AI
-                </span>
-              </div>
-              <p className="text-xs text-emerald-300/60 mt-0.5">
-                Actionable AI insights tailored to optimize energy, water, and material scores.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {assessment.recommendations && assessment.recommendations.length > 0 ? (
-            assessment.recommendations.map((rec, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ scale: 1.02, x: 4 }}
-                className="p-4 rounded-2xl bg-[#0d1811]/90 border border-emerald-500/15 flex items-start gap-3 transition-all duration-300"
-              >
-                <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold">
-                  {idx + 1}
-                </div>
-                <p className="text-xs text-emerald-100/90 leading-relaxed font-medium">{rec}</p>
-              </motion.div>
-            ))
-          ) : (
-            <p className="text-xs text-emerald-400/60">No recommendations available.</p>
-          )}
-        </div>
-      </motion.div>
     </motion.div>
   );
 };
