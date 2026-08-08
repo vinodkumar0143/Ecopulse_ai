@@ -21,12 +21,18 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
+// Route Hit Debugger Middleware
+app.use((req, res, next) => {
+  console.log(`[API Route Hit] ${req.method} ${req.url}`);
+  next();
+});
+
 // Base Route
 app.get('/', (req, res) => {
   res.json({ message: 'API Running Successfully' });
 });
 
-// Mount API Routes
+// Mount API Routes (Supporting both /api/users and /api/auth)
 app.use('/api/buildings', buildingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);

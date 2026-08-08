@@ -1,24 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { signup, login } = require('../controllers/authController');
 
-// @route   POST /api/users/register
-// @desc    Register a new user
-// @access  Public
-router.post('/register', (req, res) => {
-  res.status(201).json({
-    message: 'Register route working',
-    user: req.body,
-  });
-});
-
-// @route   POST /api/users/login
-// @desc    Authenticate user
-// @access  Public
-router.post('/login', (req, res) => {
-  res.status(200).json({
-    message: 'Login route working',
-    user: req.body,
-  });
-});
+// Support both /register and /signup aliases
+router.post('/register', signup);
+router.post('/signup', signup);
+router.post('/login', login);
 
 module.exports = router;
