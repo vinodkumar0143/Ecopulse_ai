@@ -27,6 +27,9 @@ export const deleteBuilding = (id) => API.delete(`/buildings/${id}`);
 export const getAIAnalysis = (buildingData) => API.post('/ai/recommend', buildingData);
 export const sendChatMessage = (message, contextData) => API.post('/ai/chat', { message, contextData });
 
+// Smart Predictive Forecasting Endpoint
+export const getForecast = (payload) => API.post('/predict/forecast', payload);
+
 // Authentication Endpoints
 export const signupUser = (userData) => API.post('/auth/signup', userData);
 export const loginUser = (userData) => API.post('/auth/login', userData);

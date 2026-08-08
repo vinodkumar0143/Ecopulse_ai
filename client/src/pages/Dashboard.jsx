@@ -16,7 +16,6 @@ import {
   TrendingUp,
   RefreshCw,
   AlertCircle,
-  Brain,
 } from 'lucide-react';
 import {
   BarChart,
@@ -34,6 +33,7 @@ import AIScoreExplanation from '../components/AIScoreExplanation';
 import AIRecommendations from '../components/AIRecommendations';
 import CostSavingsCard from '../components/CostSavingsCard';
 import ImpactCard from '../components/ImpactCard';
+import PredictionDashboard from '../components/PredictionDashboard';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -69,7 +69,7 @@ const Dashboard = () => {
     } catch (err) {
       setError('Something went wrong connecting to backend API. Please try again.');
       setAiLoading(false);
-    } fontFinally: {
+    } finally {
       setLoading(false);
     }
   };
@@ -432,7 +432,10 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Grid Row 3: AI Score Synthesis & Impact Cards */}
+      {/* Grid Row 3: Smart Predictive Forecasting Dashboard */}
+      <PredictionDashboard buildingData={assessment} />
+
+      {/* Grid Row 4: AI Score Synthesis & Impact Cards */}
       {aiLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="h-44 glass-card rounded-3xl animate-pulse bg-emerald-950/20" />
@@ -462,7 +465,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Grid Row 4: Recharts Visualizations */}
+      {/* Grid Row 5: Recharts Visualizations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div variants={itemVariants} className="glass-card p-6 rounded-3xl border border-emerald-500/20 shadow-xl">
           <h3 className="text-base font-bold text-emerald-100 mb-4 flex items-center gap-2">
