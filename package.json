@@ -1,0 +1,12 @@
+{
+  "name": "green-building-sustainability-assessment-platform",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "backend": "npm --prefix backend run dev",
+    "client": "npm --prefix client run dev",
+    "dev": "npm --prefix client run dev"
+  }
+
+}
