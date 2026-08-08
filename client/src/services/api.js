@@ -23,8 +23,9 @@ export const getBuildingById = (id) => API.get(`/buildings/${id}`);
 export const createBuilding = (buildingData) => API.post('/buildings', buildingData);
 export const deleteBuilding = (id) => API.delete(`/buildings/${id}`);
 
-// Structured AI Recommendation Engine
+// Structured AI Recommendation & Chatbot Endpoints
 export const getAIAnalysis = (buildingData) => API.post('/ai/recommend', buildingData);
+export const sendChatMessage = (message, contextData) => API.post('/ai/chat', { message, contextData });
 
 // Authentication Endpoints
 export const signupUser = (userData) => API.post('/auth/signup', userData);
