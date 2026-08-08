@@ -28,12 +28,16 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { getBuildings, getAIAnalysis } from '../services/api';
+import { getBuildings, getAIAnalysis, getLeaderboard, getUserBadges } from '../services/api';
 import AIScoreExplanation from '../components/AIScoreExplanation';
 import AIRecommendations from '../components/AIRecommendations';
 import CostSavingsCard from '../components/CostSavingsCard';
 import ImpactCard from '../components/ImpactCard';
 import PredictionDashboard from '../components/PredictionDashboard';
+import ScoreCard from '../components/ScoreCard';
+import ProgressBar from '../components/ProgressBar';
+import BadgeCard from '../components/BadgeCard';
+import Leaderboard from '../components/Leaderboard';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -41,17 +45,37 @@ const Dashboard = () => {
 
   const [assessment, setAssessment] = useState(location.state?.newAssessment || null);
   const [aiData, setAiData] = useState(null);
+  const [gameData, setGameData] = useState(null);
+  const [leaderboardData, setLeaderboardData] = useState([]);
   const [loading, setLoading] = useState(!location.state?.newAssessment);
   const [aiLoading, setAiLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    fetchGamificationData();
     if (!location.state?.newAssessment) {
       fetchLatestAssessment();
     } else {
       fetchAIInsights(location.state.newAssessment);
     }
   }, []);
+
+  const fetchGamificationData = async () => {
+    try {
+      const [badgesRes, leaderboardRes] = await Promise.all([
+        getUserBadges(),
+        getLeaderboard(),
+      ]);
+      if (badgesRes.data?.data) {
+        setGameData(badgesRes.data.data);
+      }
+      if (leaderboardRes.data?.data) {
+        setLeaderboardData(leaderboardRes.data.data);
+      }
+    } catch (e) {
+      console.log('Gamification fallback enabled');
+    }
+  };
 
   const fetchLatestAssessment = async () => {
     try {
@@ -141,7 +165,7 @@ const Dashboard = () => {
           <Building2 className="w-16 h-16 text-emerald-400/40 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-emerald-100">No Assessment Found</h2>
           <p className="text-sm text-emerald-300/70 mt-2 mb-6">
-            Generate your first building sustainability evaluation to view analytics and AI insights.
+            Generate your first building sustainability evaluation to view analytics, AI insights, and gamification rewards.
           </p>
           <button
             onClick={() => navigate('/assess')}
@@ -252,6 +276,19 @@ const Dashboard = () => {
           <PlusCircle className="w-4 h-4" />
           <span>Assess Another Building</span>
         </button>
+      </div>
+
+      {/* Gamification Dashboard Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ScoreCard
+          points={gameData?.points || 260}
+          level={gameData?.level || 2}
+          streak={gameData?.streak || 4}
+        />
+        <ProgressBar
+          points={gameData?.points || 260}
+          level={gameData?.level || 2}
+        />
       </div>
 
       {/* Grid Row 1: Score Gauge Card & Building Profile */}
@@ -435,7 +472,13 @@ const Dashboard = () => {
       {/* Grid Row 3: Smart Predictive Forecasting Dashboard */}
       <PredictionDashboard buildingData={assessment} />
 
-      {/* Grid Row 4: AI Score Synthesis & Impact Cards */}
+      {/* Grid Row 4: Badge Showcase */}
+      <BadgeCard badges={gameData?.badges} />
+
+      {/* Grid Row 5: Global Leaderboard */}
+      <Leaderboard leaderboard={leaderboardData} />
+
+      {/* Grid Row 6: AI Score Synthesis & Impact Cards */}
       {aiLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="h-44 glass-card rounded-3xl animate-pulse bg-emerald-950/20" />
@@ -465,7 +508,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Grid Row 5: Recharts Visualizations */}
+      {/* Grid Row 7: Recharts Visualizations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div variants={itemVariants} className="glass-card p-6 rounded-3xl border border-emerald-500/20 shadow-xl">
           <h3 className="text-base font-bold text-emerald-100 mb-4 flex items-center gap-2">

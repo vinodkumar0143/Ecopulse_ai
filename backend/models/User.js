@@ -25,6 +25,27 @@ const userSchema = new mongoose.Schema(
       minlength: [6, 'Password must be at least 6 characters long'],
       select: false,
     },
+    points: {
+      type: Number,
+      default: 120,
+    },
+    level: {
+      type: Number,
+      default: 2,
+    },
+    streak: {
+      type: Number,
+      default: 3,
+    },
+    badges: [
+      {
+        id: { type: String, required: true },
+        name: { type: String, required: true },
+        icon: { type: String, required: true },
+        description: { type: String, required: true },
+        unlockedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,

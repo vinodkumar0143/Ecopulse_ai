@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/auth');
 const aiRoutes = require('./routes/ai');
 const predictRoutes = require('./routes/predict');
+const gameRoutes = require('./routes/game');
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/predict', predictRoutes);
+app.use('/api/game', gameRoutes);
 
 // Custom Error Handling Middleware
 app.use(notFound);

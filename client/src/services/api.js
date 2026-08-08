@@ -30,6 +30,11 @@ export const sendChatMessage = (message, contextData) => API.post('/ai/chat', { 
 // Smart Predictive Forecasting Endpoint
 export const getForecast = (payload) => API.post('/predict/forecast', payload);
 
+// Gamification & Leaderboard Endpoints
+export const updateGameScore = (pointsToAdd, reason) => API.post('/game/update-score', { pointsToAdd, reason });
+export const getLeaderboard = () => API.get('/game/leaderboard');
+export const getUserBadges = () => API.get('/game/badges');
+
 // Authentication Endpoints
 export const signupUser = (userData) => API.post('/auth/signup', userData);
 export const loginUser = (userData) => API.post('/auth/login', userData);
