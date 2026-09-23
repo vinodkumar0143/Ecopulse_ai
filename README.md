@@ -2,7 +2,7 @@
 
 An enterprise-grade, production-ready web application designed to evaluate the environmental impact of buildings based on energy consumption, water usage, and material efficiency. Computes a normalized sustainability score (0–100) with dynamic AI recommendations and interactive data visualizations.
 
----
+--
 
 ## ✨ Features
 
